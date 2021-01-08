@@ -1,18 +1,18 @@
 CXX = g++
 CXXFLAGS += -Wall -Wextra -g
-CPPFLAGS += -isystem src -std=c++11
+CPPFLAGS += -std=c++11
 
 OBJ_DIR = obj
 MKDIR_P = mkdir -p
 
-MODULES = parser
+MODULES = lexer
 
 OBJECTS = $(MODULES:%=$(OBJ_DIR)/%.o)
 GTEST_LIB = /usr/local/lib/gtest/libgtest.a /usr/local/lib/gtest/libgtest_main.a
 
-PARSER = parser
+MAIN = main
 
-all: $(PARSER) tests
+all: $(MAIN)
 
 $(OBJ_DIR):
 	$(MKDIR_P) $(OBJ_DIR)
@@ -26,10 +26,10 @@ $(OBJ_DIR)/tests.o: tst/tests.cpp
 tests: $(OBJ_DIR)/tests.o $(OBJECTS) $(GTEST_LIB)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ 
 
-$(PARSER): $(OBJ_DIR)/$(PARSER).o  $(OBJECTS) 
+$(MAIN): $(OBJ_DIR)/$(MAIN).o  $(OBJECTS) 
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ -o $@
 
 clean:
 	rm -rf $(OBJ_DIR)
-	rm -f $(PARSER)
+	rm -f $(MAIN)
 	rm -f tests
