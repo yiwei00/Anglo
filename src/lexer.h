@@ -1,22 +1,28 @@
-#include <vector>
 #include <string>
 
 typedef enum {
-  whitespace,
-  alphanum,
-  punctuation,
-  unknown
-} char_type;
+  _symbol,
+  _punctuation,
+  _string,
+  _number,
+  _unknown,
+} token_type;
 
-char_type get_type(const char &c);
-
-struct Token{
-  std::string tok;
-  char_type c;
-  Token(std::string tok) :
-    tok(tok),
-    c(get_type(tok[0]))
-    {};
+class Token {
+public:
+  Token(token_type type, const std::string &token);
+  token_type get_type() { return type; }
+  const std::string& get_tok() { return token; }
+private:
+  token_type type;
+  std::string token;
 };
 
-std::vector<Token> tokenize(const std::string &token_string);
+class Lexer {
+public:
+  Lexer(const std::string &buf);
+  Token* next_tok();
+private:
+  const std::string &buf;
+  std::string::const_iterator cur;
+};

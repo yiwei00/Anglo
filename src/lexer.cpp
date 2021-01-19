@@ -1,31 +1,76 @@
 #include "lexer.h"
-#include <cctype>
+#include <string>
 
-using namespace std;
+using namespace std; //the full namespace std has some conflicts
 
-string special_char = "+-*/%,;.=|&><(){}[]";
+const static string puncts = "(),.-=\n";
 
-char_type get_type(const char &c) {
-  if (isspace(c) && c != '\n')
-    return whitespace;
-  if (isalnum(c))
-    return alphanum;
-  string punct_list = "!@#$%^&*()_+-=`~[]\\;',./{}|:\"<>?\n";
-  if (punct_list.find(c) != string::npos)
-    return punctuation;
-  return unknown;
+//helper cctype style function, customized for my purpose
+
+static bool is_space(char c) {
+  return (c == ' ' || c == '\t' || c == '\014');
 }
 
-vector<Token> tokenize(const string &token_string) {
-  vector<Token> tokens;
-  char_type start_type = get_type(*token_string.begin());
-  for (auto tok_start = token_string.begin(), i = tok_start; i <= token_string.end(); ++i) {
-    if (i != token_string.end() && start_type == get_type(*i))
-      continue;
-    tokens.push_back(Token(string(tok_start, i)));
-    tok_start = i;
-    if (i != token_string.end())
-      start_type = get_type(*i);
+static bool is_symb(char c) {
+  return ((c >= 'A' && c <= 'Z') ||
+          (c >= 'a' && c <= 'z') ||
+          (c == '_'));
+}
+
+static bool is_digit(char c) {
+  return (c >= '0' && c <= '9');
+}
+
+static bool is_punct(char c) {
+  return (puncts.find(c) != string::npos);
+}
+
+Token::Token(token_type type, const string &token) {
+  this->type = type;
+  this->token = string(token);
+}
+
+Lexer::Lexer(const string &buf): 
+buf(buf)
+{
+  cur = buf.begin();
+}
+
+Token* Lexer::next_tok() {
+  if (cur == buf.end())
+    return nullptr;
+  while (is_space(*cur)) { //skips white space space
+    ++cur;
+    if (cur == buf.end())
+      return nullptr;
   }
-  return tokens;
+  
+  auto tok_start = cur;
+  if (*cur == '\'' || *cur == '"') { //string
+    //naive string implementation, does not support escape characters or more
+    do {
+      ++cur;
+      if (cur == buf.end())
+        break;
+    } while (*cur != *tok_start);
+    return new Token(_string, string(tok_start+1, cur++));//the ++ so cur is correctly set
+  } else if (is_digit(*cur)) {
+    while (is_digit(*cur)) {
+      ++cur;
+      if (cur == buf.end())
+        break;
+    }
+    return new Token(_number, string(tok_start, cur));
+  } else if (is_symb(*cur)) {
+    while (is_symb(*cur)){
+      ++cur;
+      if (cur == buf.end())
+        break;
+    }
+    return new Token(_symbol, string(tok_start, cur));
+  } else if (is_punct(*cur)) {
+    return new Token(_punctuation, string(tok_start, ++cur));
+  }
+  //TODO: throw error instead of return null
+  return nullptr;
 }

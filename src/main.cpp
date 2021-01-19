@@ -5,10 +5,11 @@ using namespace std;
 
 int main(void)
 {
-  string input = "public static void main()";
-  auto tokens = tokenize(input);
-  for (std::vector<Token>::size_type i = 0; i < tokens.size(); ++i) {
-    cout << tokens[i].tok << " of type: " << (int) tokens[i].c << endl;
+  string input = "let my_str = 'hello, world'().1234\n";
+  Lexer luther = Lexer(input);
+  Token *tok = nullptr;
+  while ((tok = luther.next_tok()) != nullptr) {
+    cout << "token \"" << tok->get_tok() << "\" of type " << tok->get_type() << endl;
   }
   return 0;
 }
