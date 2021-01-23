@@ -1,3 +1,4 @@
+#ifndef LEXER_H
 #include <string>
 
 typedef enum {
@@ -26,3 +27,5 @@ private:
   const std::string &buf;
   std::string::const_iterator cur;
 };
+
+#endif
