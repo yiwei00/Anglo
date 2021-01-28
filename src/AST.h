@@ -1,157 +1,185 @@
-/*
-written by Yi Wei in January 2021
-contains the definition for the AST data structure
-*/
 #ifndef AST_H
-#include <vector>
+#define AST_H
+
 #include <string>
+#include <vector>
 
-//forward declarations
-struct Expression;
-struct Statement;
-struct Oper_Expr;
-struct Lit_Expr;
-struct Var_Expr;
-struct If_State;
-struct While_State;
+//forward declare block
+class Variable;
 
-enum _code_type{
-  _Expr,
-  _State
+enum _code_type {
+  _expression,
+  _statement,
 };
 
-struct Code {
-  _code_type code_type;
-  union {
-    Expression* expr;
-    Statement* state;
-  };
-  ~Code();
-};
-
-enum _expr_type{
-  _Liter,
-  _Oper,
-  _Var,
-};
-
-struct Expression {
-  virtual ~Expression() = 0; //force abstraction via destructor
-  _expr_type expr_type;
-};
-
-enum _literal_type{
-  _Number,
-  _Bool,
-  _None,
-  _String,
-  _Func,
-};
-
-struct Function {
-  std::vector<Var_Expr *> params;
-  std::vector<Code *> body;
-  
-  Function(std::vector<Var_Expr *> params, std::vector<Code *> body);
-  
-  ~Function();
-
-private:
-  bool swapped = false;
-
-  Function& swap(Function &other);
-  Function(const Function &other);
-  Function& operator=(const Function &rhs);
-};
-
-struct Literal {
+class Code {
 public:
-  _literal_type type;
+  _code_type code_type;
+
+  virtual ~Code();
+  virtual Code* copy() = 0;
+};
+
+enum _expr_type {
+  _literal,
+  _operation,
+  _variable,
+};
+
+class Expression : public Code {
+public:
+  _expr_type expr_type;
+
+  inline Expression() { code_type = _expression; }
+};
+
+enum _literal_type {
+  _number,
+  _bool,
+  _none,
+  _string,
+  _func,
+};
+
+class Function {
+public:
+  std::vector<Variable *> params;
+  std::vector<Code *> body;
+
+  Function(std::vector<Variable *> params, std::vector<Code *> body);
+  ~Function();
+  inline Function(const Function &other) { this->hard_copy(other); };
+  Function& operator=(const Function &rhs);
+private:
+  //function called by the copy constructor and operator=
+  void hard_copy(const Function &other);
+};
+
+class Literal : public Expression {
+public:
+  _literal_type literal_type;
   union {
     double number;
     bool boolean;
-    void *none;
-    std::string *str;
-    Function *func;
+    void* none;
+    std::string* str;
+    Function* func;
   };
 
-  Literal(double num);
+  Literal();
+  Literal(double number);
   Literal(bool boolean);
   Literal(const std::string &str);
-  //rule of three since we have destructor
-  Literal(const Literal &other);
-  Literal& operator=(const Literal &rhs);
+  Literal(Function *fun);
 
   ~Literal();
+  inline Literal(const Literal &other) { this->hard_copy(other); };
+  Literal& operator=(const Literal &rhs);
+
+  inline Code* copy() { return new Literal(*this); };
+private:
+  //the function that copy, the copy constructor, and op=
+  void hard_copy(const Literal &other);
 };
 
-struct Lit_Expr : public Expression {
-  Literal liter;
+class Variable : public Expression {
+public:
+  std::string var_name;
 
-  Lit_Expr(const Literal &liter);
+  Variable(const std::string &var_name);
+  inline Variable* copy() { return new Variable(this->var_name); };
 };
 
-enum _oper_type{
-  _Add,
-  _Sub,
-  _Mul,
-  _Div,
-  _Assign,
-  _Concat,
-  _Equals,
-  _Logic_And,
-  _Logic_Or,
+enum _oper_type {
+  _add,
+  _sub,
+  _mul,
+  _div,
+  _assign,
+  _concat,
+  _equals,
+  _logic_and,
+  _logic_or,
 };
 
-struct Oper_Expr : public Expression {
+class Oper : public Expression {
+public:
   _oper_type oper_type;
   std::vector<Expression *> operands;
 
-  Oper_Expr(_oper_type oper_type, std::vector<Expression *> operands);
-  ~Oper_Expr();
+  Oper(_oper_type o_type, std::vector<Expression *> operands);
+  ~Oper();
+
+  inline Oper(const Oper &other) { this->hard_copy(other); };
+  Oper& operator=(const Oper &rhs);
+  
+  inline Oper* copy() { return new Oper(*this); };
 
 private:
-  Oper_Expr(const Oper_Expr &other);
-  Oper_Expr& operator=(const Oper_Expr &rhs);
-  
+  void hard_copy(const Oper &other);
 };
 
-struct Var_Expr : public Expression {
-  std::string var_name;
-
-  Var_Expr(const std::string &var_name);
-};
-
-enum _state_type{
-  _cond_if,
+enum _stmt_type {
+  _return,
+  _flow_if,
   _loop_while,
 };
 
-struct Statement {
-  _state_type state_type;
-  virtual ~Statement() = 0; //force abstraction bc complicated
+class Statement : public Code {
+public:
+  _stmt_type stmt_type;
+
+  inline Statement() { code_type = _statement; }
 };
 
-struct If_State : public Statement {
-  Expression* cond;
-  std::vector<Code *> true_block;
-  std::vector<Code *> false_block;
+class Return_Stmt : public Statement {
+public:
+  Expression *value;
 
-  If_State(Expression *cond, std::vector<Code *> true_block, std::vector<Code *> false_block);
-  ~If_State();
+  Return_Stmt(Expression *value);
+
+  inline ~Return_Stmt() { delete value; };
+  inline Return_Stmt(const Return_Stmt &other) { this->hard_copy(other); };
+  Return_Stmt& operator=(const Return_Stmt &rhs);
+
+  inline Return_Stmt* copy() { return new Return_Stmt(*this); };
 private:
-  If_State(const If_State &other);
-  If_State& operator=(const If_State &rhs);
+  void hard_copy(const Return_Stmt &other);
 };
 
-struct While_State : public Statement {
-  Expression* cond;
-  std::vector<Code *> loop_block;
-  While_State(Expression *cond, std::vector<Code *> loop_block);
-  ~While_State();
+class If_Stmt : public Statement {
+public:
+  Expression *cond;
+  std::vector<Code *> if_block;
+  std::vector<Code *> else_block;
+
+  If_Stmt(
+    Expression *cond, 
+    std::vector<Code *> if_block, 
+    std::vector<Code *> else_block
+  );
+
+  ~If_Stmt();
+  inline If_Stmt(const If_Stmt &other) { this->hard_copy(other); };
+  If_Stmt& operator=(const If_Stmt &rhs);
+
+  inline If_Stmt* copy() { return new If_Stmt(*this); };
 private:
-  While_State(const While_State &other);
-  While_State& operator=(const While_State &rhs);
+  void hard_copy(const If_Stmt &other);
+};
+
+class While_Stmt : public Statement {
+public:
+  Expression *cond;
+  std::vector<Code *> body;
+
+  ~While_Stmt();
+  inline While_Stmt(const While_Stmt &other) { this->hard_copy(other); };
+  While_Stmt& operator=(const While_Stmt &rhs);
+
+  inline While_Stmt* copy() { return new While_Stmt(*this); };
+private:
+  void hard_copy(const While_Stmt &other);
 };
 
 #endif

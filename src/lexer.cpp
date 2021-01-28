@@ -25,7 +25,7 @@ static bool is_punct(char c) {
   return (puncts.find(c) != string::npos);
 }
 
-Token::Token(token_type type, const string &token) {
+Token::Token(_token_type type, const string &token) {
   this->type = type;
   this->token = string(token);
 }
