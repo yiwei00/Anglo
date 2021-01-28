@@ -6,14 +6,19 @@ contains the definition for the AST data structure
 #include <vector>
 #include <string>
 
-//forward declare
+//forward declarations
 struct Expression;
 struct Statement;
+struct Oper_Expr;
+struct Lit_Expr;
+struct Var_Expr;
+struct If_State;
+struct While_State;
 
-typedef enum {
+enum _code_type{
   _Expr,
   _State
-} _code_type;
+};
 
 struct Code {
   _code_type code_type;
@@ -24,13 +29,40 @@ struct Code {
   ~Code();
 };
 
-typedef enum {
+enum _expr_type{
+  _Liter,
+  _Oper,
+  _Var,
+};
+
+struct Expression {
+  virtual ~Expression() = 0; //force abstraction via destructor
+  _expr_type expr_type;
+};
+
+enum _literal_type{
   _Number,
   _Bool,
   _None,
   _String,
   _Func,
-} _literal_type;
+};
+
+struct Function {
+  std::vector<Var_Expr *> params;
+  std::vector<Code *> body;
+  
+  Function(std::vector<Var_Expr *> params, std::vector<Code *> body);
+  
+  ~Function();
+
+private:
+  bool swapped = false;
+
+  Function& swap(Function &other);
+  Function(const Function &other);
+  Function& operator=(const Function &rhs);
+};
 
 struct Literal {
 public:
@@ -40,7 +72,7 @@ public:
     bool boolean;
     void *none;
     std::string *str;
-    void *func;
+    Function *func;
   };
 
   Literal(double num);
@@ -51,22 +83,15 @@ public:
   Literal& operator=(const Literal &rhs);
 
   ~Literal();
-private:
-  void swap(const Literal &rhs);
 };
 
-typedef enum {
-  _Liter,
-  _Oper,
-  _Var,
-} _expr_type;
+struct Lit_Expr : public Expression {
+  Literal liter;
 
-struct Expression {
-  virtual ~Expression() = 0; //force abstraction via destructor
-  _expr_type expr_type;
+  Lit_Expr(const Literal &liter);
 };
 
-typedef enum {
+enum _oper_type{
   _Add,
   _Sub,
   _Mul,
@@ -76,7 +101,7 @@ typedef enum {
   _Equals,
   _Logic_And,
   _Logic_Or,
-} _oper_type;
+};
 
 struct Oper_Expr : public Expression {
   _oper_type oper_type;
@@ -97,16 +122,10 @@ struct Var_Expr : public Expression {
   Var_Expr(const std::string &var_name);
 };
 
-struct Lit_Expr : public Expression {
-  Literal liter;
-
-  Lit_Expr(const Literal &liter);
+enum _state_type{
+  _cond_if,
+  _loop_while,
 };
-
-typedef enum {
-  cond_if,
-  loop_while,
-} _state_type;
 
 struct Statement {
   _state_type state_type;
@@ -118,11 +137,7 @@ struct If_State : public Statement {
   std::vector<Code *> true_block;
   std::vector<Code *> false_block;
 
-  If_State(Expression *cond, std::vector<Code *> true_block, std::vector<Code *> false_block):
-    cond(cond), 
-    true_block(true_block), 
-    false_block(false_block)
-    {};
+  If_State(Expression *cond, std::vector<Code *> true_block, std::vector<Code *> false_block);
   ~If_State();
 private:
   If_State(const If_State &other);
@@ -132,10 +147,7 @@ private:
 struct While_State : public Statement {
   Expression* cond;
   std::vector<Code *> loop_block;
-  While_State(Expression *cond, std::vector<Code *> loop_block):
-    cond(cond),
-    loop_block(loop_block)
-    {};
+  While_State(Expression *cond, std::vector<Code *> loop_block);
   ~While_State();
 private:
   While_State(const While_State &other);

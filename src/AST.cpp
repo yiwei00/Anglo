@@ -10,6 +10,24 @@ Code::~Code() {
     delete state;
 }
 
+/*
+All memories in params and body will now be handled by this struct
+*/
+Function::Function(std::vector<Var_Expr *> params, std::vector<Code *> body) {
+  this->params = params;
+  this->body = body;
+}
+
+Function::~Function() {
+  if (swapped) return;
+  for (auto p_ptr : params) {
+    delete p_ptr;
+  }
+  for (auto c_ptr: body) {
+    delete c_ptr;
+  }
+}
+
 Literal::Literal(double num) {
   type = _Number;
   number = num;
@@ -66,7 +84,7 @@ Literal& Literal::operator=(const Literal &rhs) {
     this->str = new string(*(rhs.str));
     break;
   case _Func:
-    //TODO: functions
+    this->func = rhs.func;
     break;
   default:
     break;
@@ -84,6 +102,7 @@ Expression::~Expression() {};
 Oper_Expr::Oper_Expr(_oper_type oper_type, vector<Expression *> operands) {
   this->oper_type = oper_type;
   this->operands = operands;
+  this->expr_type = _Oper;
 }
 
 Oper_Expr::~Oper_Expr() {
@@ -94,12 +113,22 @@ Oper_Expr::~Oper_Expr() {
 
 Var_Expr::Var_Expr(const string &var_name) {
   this->var_name = var_name;
+  this->expr_type = _Var;
 }
 
 Lit_Expr::Lit_Expr(const Literal &liter):
-liter(liter) {}
+liter(liter) {
+  this->expr_type = _Liter;
+}
 
 Statement::~Statement(){};
+
+If_State::If_State(Expression *cond, std::vector<Code *> true_block, std::vector<Code *> false_block):
+cond(cond), 
+true_block(true_block), 
+false_block(false_block) {
+  this->state_type = _cond_if;
+};
 
 If_State::~If_State() {
   delete cond;
@@ -107,6 +136,12 @@ If_State::~If_State() {
     delete code_ptr;
   for (Code *code_ptr : false_block)
     delete code_ptr;
+}
+
+While_State::While_State(Expression *cond, std::vector<Code *> loop_block) :
+cond(cond),
+loop_block(loop_block){
+  this->state_type = _loop_while;
 }
 
 While_State::~While_State() {
