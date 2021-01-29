@@ -169,6 +169,34 @@ void Oper::hard_copy(const Oper &other) {
   }
 }
 
+Func_Call::Func_Call(const std::string &func_name, std::vector<Expression *> args)
+:Expression() {
+  expr_type = _func_call;
+  this->func_name = func_name;
+  this->args = args;
+}
+
+Func_Call::~Func_Call() {
+  for (auto e_ptr : args)
+    delete e_ptr;
+}
+
+Func_Call& Func_Call::operator=(const Func_Call &rhs) {
+  for (auto e_ptr : args)
+    delete e_ptr;
+  this->hard_copy(rhs);
+  return *this;
+}
+
+void Func_Call::hard_copy(const Func_Call &other) {
+  this->code_type = other.code_type;
+  this->expr_type = other.expr_type;
+
+  for (auto e_ptr : other.args) {
+    this->args.push_back((Expression *) e_ptr->copy());
+  }
+}
+
 Return_Stmt::Return_Stmt(Expression *value)
 : Statement() {
   this->value = value;
@@ -219,11 +247,21 @@ If_Stmt& If_Stmt::operator=(const If_Stmt &rhs) {
 }
 
 void If_Stmt::hard_copy(const If_Stmt &other) {
+  this->code_type = other.code_type;
+  this->stmt_type = other.stmt_type;
   this->cond = (Expression *) other.cond->copy();
   for (auto e_ptr : other.if_block)
     this->if_block.push_back(e_ptr->copy());
   for (auto e_ptr : other.else_block)
     this->else_block.push_back(e_ptr->copy());
+}
+
+While_Stmt::While_Stmt(Expression *cond, std::vector<Code *> body)
+: Statement() {
+  stmt_type = _loop_while;
+
+  this->cond = cond;
+  this->body = body;
 }
 
 While_Stmt::~While_Stmt() {
@@ -243,6 +281,8 @@ While_Stmt& While_Stmt::operator=(const While_Stmt &rhs) {
 }
 
 void While_Stmt::hard_copy(const While_Stmt &other) {
+  this->code_type = other.code_type;
+  this->stmt_type = other.stmt_type;
   this->cond = (Expression *) other.cond->copy();
   for (auto e_ptr : other.body)
     this->body.push_back(e_ptr->copy());

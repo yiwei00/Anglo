@@ -24,6 +24,7 @@ enum _expr_type {
   _literal,
   _operation,
   _variable,
+  _func_call,
 };
 
 class Expression : public Code {
@@ -119,6 +120,23 @@ private:
   void hard_copy(const Oper &other);
 };
 
+class Func_Call : public Expression {
+public:
+  std::string func_name;
+  std::vector<Expression *> args;
+
+  Func_Call(const std::string &func_name, std::vector<Expression *> args);
+  ~Func_Call();
+
+  inline Func_Call(const Func_Call &other) { this->hard_copy(other); };
+  Func_Call& operator=(const Func_Call &rhs);
+
+  inline Func_Call* copy() { return new Func_Call(*this); };
+
+private:
+  void hard_copy(const Func_Call &other);
+};
+
 enum _stmt_type {
   _return,
   _flow_if,
@@ -172,6 +190,8 @@ class While_Stmt : public Statement {
 public:
   Expression *cond;
   std::vector<Code *> body;
+
+  While_Stmt(Expression *cond, std::vector<Code *> body);
 
   ~While_Stmt();
   inline While_Stmt(const While_Stmt &other) { this->hard_copy(other); };
