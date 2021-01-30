@@ -5,7 +5,7 @@ using namespace std;
 
 Code::~Code() {};
 
-Code* Code::copy() { return nullptr; };
+Code* Code::copy() const { return nullptr; };
 
 Function::Function(std::vector<Variable *> params, std::vector<Code *> body) {
   this->params = params;

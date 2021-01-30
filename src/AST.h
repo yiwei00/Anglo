@@ -17,7 +17,7 @@ public:
   _code_type code_type;
 
   virtual ~Code();
-  virtual Code* copy() = 0;
+  virtual Code* copy() const = 0;
 };
 
 enum _expr_type {
@@ -77,7 +77,7 @@ public:
   inline Literal(const Literal &other) { this->hard_copy(other); };
   Literal& operator=(const Literal &rhs);
 
-  inline Code* copy() { return new Literal(*this); };
+  inline Literal* copy() const { return new Literal(*this); };
 private:
   //the function that copy, the copy constructor, and op=
   void hard_copy(const Literal &other);
@@ -88,7 +88,7 @@ public:
   std::string var_name;
 
   Variable(const std::string &var_name);
-  inline Variable* copy() { return new Variable(this->var_name); };
+  inline Variable* copy() const { return new Variable(this->var_name); };
 };
 
 enum _oper_type {
@@ -114,7 +114,7 @@ public:
   inline Oper(const Oper &other) { this->hard_copy(other); };
   Oper& operator=(const Oper &rhs);
   
-  inline Oper* copy() { return new Oper(*this); };
+  inline Oper* copy() const { return new Oper(*this); };
 
 private:
   void hard_copy(const Oper &other);
@@ -131,7 +131,7 @@ public:
   inline Func_Call(const Func_Call &other) { this->hard_copy(other); };
   Func_Call& operator=(const Func_Call &rhs);
 
-  inline Func_Call* copy() { return new Func_Call(*this); };
+  inline Func_Call* copy() const { return new Func_Call(*this); };
 
 private:
   void hard_copy(const Func_Call &other);
@@ -160,7 +160,7 @@ public:
   inline Return_Stmt(const Return_Stmt &other) { this->hard_copy(other); };
   Return_Stmt& operator=(const Return_Stmt &rhs);
 
-  inline Return_Stmt* copy() { return new Return_Stmt(*this); };
+  inline Return_Stmt* copy() const { return new Return_Stmt(*this); };
 private:
   void hard_copy(const Return_Stmt &other);
 };
@@ -181,7 +181,7 @@ public:
   inline If_Stmt(const If_Stmt &other) { this->hard_copy(other); };
   If_Stmt& operator=(const If_Stmt &rhs);
 
-  inline If_Stmt* copy() { return new If_Stmt(*this); };
+  inline If_Stmt* copy() const { return new If_Stmt(*this); };
 private:
   void hard_copy(const If_Stmt &other);
 };
@@ -197,7 +197,7 @@ public:
   inline While_Stmt(const While_Stmt &other) { this->hard_copy(other); };
   While_Stmt& operator=(const While_Stmt &rhs);
 
-  inline While_Stmt* copy() { return new While_Stmt(*this); };
+  inline While_Stmt* copy() const { return new While_Stmt(*this); };
 private:
   void hard_copy(const While_Stmt &other);
 };

@@ -1,25 +1,74 @@
 #include "AST.h"
+#include "mem.h"
 #include <iostream>
-#include <vector>
 
-/* 
-test cases for AST written out in python bc brain is actually garbage
-
-def my_func(var1, var2):
-    if var1:
-        return None
-    else:
-        var2 = 3.4
-        while true:
-          print(var2)
-        return "hello, world"
-}
-
-*/
 
 using namespace std;
 
+void example_AST();
+void test_mem_stack();
+
 int main(void) {
+  test_mem_stack();
+  example_AST();
+  return 0;
+}
+
+void test_mem_stack() {
+  MemStack *my_mem = new MemStack();
+  bool ret = my_mem->replace("var1", Literal(42.0));
+  if (!ret) cout << "passed test1" << endl;
+  ret = my_mem->replace("var1", Literal(42.0)); //idempotency test
+  if (!ret) cout << "passed test2" << endl;
+  
+  ret = my_mem->insert("var1", Literal(42.0));
+  if (ret) cout << "passed test3" << endl;
+  ret = my_mem->insert("var1", Literal(20.0));
+  if (!ret) cout << "passed test4" << endl;
+
+  my_mem->insert("var2", Literal(false));
+  my_mem->insert("var3", Literal(string("hello there")));
+
+  auto my_dat = my_mem->get_data("var1");
+  if (my_dat->literal_type == _number && my_dat->number == 42.0)
+    cout << "passed test5" << endl;
+  my_mem->replace("var2", true);
+  my_dat = my_mem->get_data("var2");
+  if (my_dat->literal_type == _bool && my_dat->boolean)
+    cout << "passed test6" << endl;
+  
+  int freed = my_mem->free_n(2);
+  if (freed == 2) cout << "passed test7" << endl;
+
+  try{
+    my_mem->get_data("var3");
+  } catch (const char *msg) {
+    if (string(msg) == "variable doesn't exist")
+      cout << "passed test8" << endl;
+  }
+  try {
+    my_dat = my_mem->get_data("var1");
+    if (my_dat->literal_type == _number && my_dat->number == 42.0)
+      cout << "passed test9" << endl;
+  } catch (const char *msg) {
+    cout << "failed test9" << endl;
+  }
+  delete my_mem;
+}
+
+void example_AST() {
+  // test cases for AST written out in python bc brain is actually garbage
+
+  // def my_func(var1, var2):
+  //     if var1:
+  //         return None
+  //     else:
+  //         var2 = 3.4
+  //         while true:
+  //           print(var2)
+  //         return "hello, world"
+  // }
+
   Code* my_func_0 = 
   new Oper(_assign, {
     new Variable("my_func"),
@@ -36,30 +85,5 @@ int main(void) {
     }))
   }
   );
-
-  Code* my_func = my_func_0->copy();
   delete my_func_0;
-
-
-  if (my_func->code_type == _expression)
-    cout << "passed t1" << endl;
-  else 
-    cout << "failed t1" << endl;
-
-  auto my_def = (Oper *) my_func;
-  if (my_def->operands[1]->expr_type == _literal)
-    cout << "passed t2" << endl;
-  else 
-    cout << "failed t2" << endl;
-  
-  auto fun_lit = ((Literal *) my_def->operands[1])->func;
-  if ((fun_lit->body[0])->code_type == _statement) {
-    auto fun_stat = (Statement *) fun_lit->body[0];
-    if (fun_stat->stmt_type == _flow_if)
-      cout << "passed t3" << endl;
-    else
-      cout << "failed t3" << endl;
-  }
-
-  return 0;
 }

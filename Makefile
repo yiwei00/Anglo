@@ -5,7 +5,7 @@ CPPFLAGS += -std=c++11
 OBJ_DIR = obj
 MKDIR_P = mkdir -p
 
-MODULES = lexer AST
+MODULES = lexer AST memory
 
 OBJECTS = $(MODULES:%=$(OBJ_DIR)/%.o)
 GTEST_LIB = /usr/local/lib/gtest/libgtest.a /usr/local/lib/gtest/libgtest_main.a
