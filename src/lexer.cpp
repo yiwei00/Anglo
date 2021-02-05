@@ -1,7 +1,7 @@
 #include "lexer.h"
 #include <string>
 
-using namespace std; //the full namespace std has some conflicts
+using namespace std;
 
 const static string puncts = "(),.-=\n";
 

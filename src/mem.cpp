@@ -9,7 +9,7 @@
       return; //TODO: error handling
   }
 
-  Literal* MemStack::get_data(const string &var_name) {
+  const Literal* MemStack::get_data(const string &var_name) {
     auto dat = mem_store[var_name];
     if (dat == NULL) {
       dat = nullptr;
