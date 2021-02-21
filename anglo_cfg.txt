@@ -1,0 +1,58 @@
+number:
+<digit>->0|1|2|3|4|5|6|7|8|9
+<non_zero>->1|2|3|4|5|6|7|8|9
+<nat>-> <non_zero> | <nat><digit>
+<int>-> <nat> | -<nat> | 0
+<num>-><int>.<nat>
+
+spaces:
+<space>: \n|' '|\t
+
+words:
+<letter>->[A-Z,a-z]
+<identitfier>-><letter> | <identifier><letter> | <identifier><digit> | _
+
+strings:
+<char>-><ascii> that's not " or '
+<chars>-><char>|<chars><char>
+<string>->"<chars>"
+
+operator/symbols:
+<op>->IS|>|<|>=|<=|=|AND|OR|+|-|*|/
+
+Other Terminals
+<keyword>->IS|AND|OR|TASK|USES|SO|IF|THEN|OTHERWISE|PRODUCE
+<punct>->;|,|.
+<paren>->(|)
+<term>-><punct>|<paren>
+
+Lexer/Tokenizer handles above, parses into <num>,<term>,<keyword>,<op>,<identifier>,<string>
+Parser handles below
+
+function:
+<param>-><identifier>|<param>,<identifier>
+<arg>-> <expr> | <arg>,<expr>
+<fun_def>->TASK <identifier> USES <param> SO <stmts>.
+<fun_call>-><identifier> RUNS WITH <arg>
+
+expression:
+<expr>-><num>|<identifier>|<expr><op><expr>|(<expr>)|<fun_call>
+statements:
+<if_stmt>->IF<expr> THEN <stmts> OTHERWISE <stmts>. | IF <expr> THEN <stmts>.
+<stmt>-><expr>;||PRODUCE <expr>; |<if_stmt>|<fun_def>
+<stmts>-><stmt>|<stmts><stmt>
+
+keywords:
+
+example derivations:
+IF var1 = false THEN 
+	IF var2 = true THEN
+		var3 IS 2; 
+	OTHERWISE 
+		TASK newfunc USES stuff,stuff2 SO 
+			var2 IS true;
+		.
+	.
+.
+with less whitespace:
+IF var1 = false THEN IF var2 = true THEN var3 IS 2; OTHERWISE TASK newfunc USES stuff,stuff2 SO var2 IS true;...

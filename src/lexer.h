@@ -1,11 +1,14 @@
 #ifndef LEXER_H
+#define LEXER_H
 #include <string>
 
 enum _token_type {
-  _symbol,
-  _punctuation,
-  _string,
-  _number,
+  _num,
+  _term,
+  _op,
+  _keyword,
+  _str,
+  _id,
   _unknown,
 };
 
@@ -24,7 +27,7 @@ public:
   Lexer(const std::string &buf);
   Token* next_tok();
 private:
-  const std::string &buf;
+  const std::string buf;
   std::string::const_iterator cur;
 };
 

@@ -1,6 +1,7 @@
 #include "AST.h"
 #include "mem.h"
 #include "interpreter.h"
+#include "lexer.h"
 #include <iostream>
 
 
@@ -12,10 +13,20 @@ void test_var_n_func();
 void test_fun_copy();
 
 int main(void) {
-  try {
-    test_var_n_func();
-  } catch (char const* s) {
-    cout << s << endl;
+  Lexer luther(string("\
+IF var1 = false THEN\
+	IF var2 = true THEN\
+		var3 IS 2;\
+	OTHERWISE\
+		TASK newfunc USES stuff,stuff2 SO\
+			var2 IS true;\
+		.\
+	.\
+.  "));
+  Token *tok = nullptr;
+  while((tok = luther.next_tok())) {
+    cout << tok->get_tok() << endl;
+    delete tok;
   }
   return 0;
 }
